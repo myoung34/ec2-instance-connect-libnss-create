@@ -6,8 +6,8 @@ LIBRARY=libnss_create.so.2.0
 LINKS=libnss_create.so.2 libnss_create.so
 
 DESTDIR=/
-PREFIX=$(DESTDIR)/usr
-LIBDIR=$(PREFIX)/lib
+PREFIX=$(DESTDIR)usr
+LIBDIR=$(PREFIX)/lib64
 BUILD=.libs
 
 default: build
@@ -33,10 +33,14 @@ install:
 	install $(BUILD)/$(LIBRARY) $(LIBDIR)
 	cd $(LIBDIR); for link in $(LINKS); do ln -sf $(LIBRARY) $$link ; done
 	cp nss_create /sbin
+	sed -i.bak 's/^passwd:.*sss files$$/passwd:     sss files create files/g' /etc/nsswitch.conf
+	systemctl restart sshd
 
 remove:
-	rm -rf /sbin/nss_create
+	sed -i.bak 's/^passwd:.*sss files create files$$/passwd:     sss files/g' /etc/nsswitch.conf
+	rm -rf /sbin/nss_create $(LIBDIR)/$(LIBRARY)
 	cd $(LIBDIR); for link in $(LINKS); do unlink $$link ; done
+	systemctl restart sshd
 
 
 .PHONY: clean install nss_create_build_dir nss_create
