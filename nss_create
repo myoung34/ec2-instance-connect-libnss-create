@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -eo pipefail
+
+NAME_REGEX="^[a-z][-.a-z0-9]*$"
+
+if [ "$1" = "getpwnam_r" ] && [ -n "$2" ]; then
+  if [[ "$2" =~ $NAME_REGEX ]]; then
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://169.254.169.254/latest/meta-data/managed-ssh-keys/active-keys/$2")
+    if [[ $HTTP_CODE -ge 200 && $HTTP_CODE -lt 300 ]]; then
+      luseradd -s /bin/bash "$2"
+    fi
+  fi
+fi
